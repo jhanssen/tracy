@@ -37,6 +37,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef PRIu32
+#define PRIu32 "u"
+#endif
+#ifndef PRIu64
+#define PRIu64 "llu"
+#endif
+#ifndef PRIu16
+#define PRIu16 "h"
+#endif
+
 #include "TracySystem.hpp"
 
 #if defined _WIN32

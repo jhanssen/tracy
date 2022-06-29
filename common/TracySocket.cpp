@@ -165,6 +165,11 @@ bool Socket::Connect( const char* addr, uint16_t port )
 
     if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
     int sock = 0;
+    if (res->ai_family == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_port = htons(port);
+    } else {
+        reinterpret_cast<sockaddr_in6*>(res->ai_addr)->sin6_port = htons(port);
+    }
     for( ptr = res; ptr; ptr = ptr->ai_next )
     {
         if( ( sock = socket( ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol ) ) == -1 ) continue;
@@ -237,6 +242,11 @@ bool Socket::ConnectBlocking( const char* addr, uint16_t port )
 
     if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
     int sock = 0;
+    if (res->ai_family == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_port = htons(port);
+    } else {
+        reinterpret_cast<sockaddr_in6*>(res->ai_addr)->sin6_port = htons(port);
+    }
     for( ptr = res; ptr; ptr = ptr->ai_next )
     {
         if( ( sock = socket( ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol ) ) == -1 ) continue;
@@ -463,9 +473,11 @@ static int addrinfo_and_socket_for_family( uint16_t port, int ai_family, struct 
 #endif
     char portbuf[32];
     sprintf( portbuf, "%" PRIu16, port );
-    if( getaddrinfo( nullptr, portbuf, &hints, res ) != 0 ) return -1;
+    const auto addrval = getaddrinfo( nullptr, portbuf, &hints, res );
+    if (addrval != 0 ) { return -1; }
+    // ugh
     int sock = socket( (*res)->ai_family, (*res)->ai_socktype, (*res)->ai_protocol );
-    if (sock == -1) freeaddrinfo( *res );
+    if (sock == -1) { freeaddrinfo( *res ); }
     return sock;
 }
 
@@ -487,7 +499,12 @@ bool ListenSocket::Listen( uint16_t port, int backlog )
         // IPV6 protocol may not be available/is disabled. Try to create a socket
         // with the IPV4 protocol
         m_sock = addrinfo_and_socket_for_family( port, AF_INET, &res );
-        if( m_sock == -1 ) return false;
+        if( m_sock == -1 ) { return false; }
+    }
+    if (res->ai_family == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_port = htons(port);
+    } else {
+        reinterpret_cast<sockaddr_in6*>(res->ai_addr)->sin6_port = htons(port);
     }
 #if defined _WIN32
     unsigned long val = 0;
@@ -576,6 +593,11 @@ bool UdpBroadcast::Open( const char* addr, uint16_t port )
 
     if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
     int sock = 0;
+    if (res->ai_family == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_port = htons(port);
+    } else {
+        reinterpret_cast<sockaddr_in6*>(res->ai_addr)->sin6_port = htons(port);
+    }
     for( ptr = res; ptr; ptr = ptr->ai_next )
     {
         if( ( sock = socket( ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol ) ) == -1 ) continue;
