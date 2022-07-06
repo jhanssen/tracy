@@ -97,14 +97,14 @@ public:
     {
         assert( m_context != 255 );
 
-        glGenQueries( QueryCount, m_query );
+        netflix::gl()->glGenQueries( QueryCount, m_query );
 
         int64_t tgpu;
-        glGetInteger64v( GL_TIMESTAMP, &tgpu );
+        netflix::gl()->glGetInteger64v( GL_TIMESTAMP, &tgpu );
         int64_t tcpu = Profiler::GetTime();
 
         GLint bits;
-        glGetQueryiv( GL_TIMESTAMP, GL_QUERY_COUNTER_BITS, &bits );
+        netflix::gl()->glGetQueryiv( GL_TIMESTAMP, GL_QUERY_COUNTER_BITS_EXT, &bits );
 
         const float period = 1.f;
         const auto thread = GetThreadHandle();
@@ -156,11 +156,11 @@ public:
         while( m_tail != m_head )
         {
             GLint available;
-            glGetQueryObjectiv( m_query[m_tail], GL_QUERY_RESULT_AVAILABLE, &available );
+            netflix::gl()->glGetQueryObjectivEXT( m_query[m_tail], GL_QUERY_RESULT_AVAILABLE, &available );
             if( !available ) return;
 
             uint64_t time;
-            glGetQueryObjectui64v( m_query[m_tail], GL_QUERY_RESULT, &time );
+            netflix::gl()->glGetQueryObjectui64vEXT( m_query[m_tail], GL_QUERY_RESULT, &time );
 
             TracyLfqPrepare( QueueType::GpuTime );
             MemWrite( &item->gpuTime.gpuTime, (int64_t)time );
@@ -211,7 +211,7 @@ public:
         if( !m_active ) return;
 
         const auto queryId = GetGpuCtx().ptr->NextQueryId();
-        glQueryCounter( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
+        netflix::gl()->glQueryCounterEXT( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
 
         TracyLfqPrepare( QueueType::GpuZoneBegin );
         MemWrite( &item->gpuZoneBegin.cpuTime, Profiler::GetTime() );
@@ -232,7 +232,7 @@ public:
         if( !m_active ) return;
 
         const auto queryId = GetGpuCtx().ptr->NextQueryId();
-        glQueryCounter( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
+        netflix::gl()->glQueryCounterEXT( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
 
 #ifdef TRACY_FIBERS
         TracyLfqPrepare( QueueType::GpuZoneBegin );
@@ -259,7 +259,7 @@ public:
         if( !m_active ) return;
 
         const auto queryId = GetGpuCtx().ptr->NextQueryId();
-        glQueryCounter( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
+        netflix::gl()->glQueryCounterEXT( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
 
         TracyLfqPrepare( QueueType::GpuZoneBeginAllocSrcLoc );
         const auto srcloc = Profiler::AllocSourceLocation( line, source, sourceSz, function, functionSz, name, nameSz );
@@ -281,7 +281,7 @@ public:
         if( !m_active ) return;
 
         const auto queryId = GetGpuCtx().ptr->NextQueryId();
-        glQueryCounter( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
+        netflix::gl()->glQueryCounterEXT( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
 
 #ifdef TRACY_FIBERS
         TracyLfqPrepare( QueueType::GpuZoneBeginAllocSrcLoc );
@@ -304,7 +304,7 @@ public:
         if( !m_active ) return;
 
         const auto queryId = GetGpuCtx().ptr->NextQueryId();
-        glQueryCounter( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
+        netflix::gl()->glQueryCounterEXT( GetGpuCtx().ptr->TranslateOpenGlQueryId( queryId ), GL_TIMESTAMP );
 
         TracyLfqPrepare( QueueType::GpuZoneEnd );
         MemWrite( &item->gpuZoneEnd.cpuTime, Profiler::GetTime() );
